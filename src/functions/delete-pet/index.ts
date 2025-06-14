@@ -4,9 +4,9 @@ export default {
   handler: `${handlerPath(__dirname)}/handler.handler`,
   events: [
     {
-      http: {
+      httpApi: {
         method: "put",
-        path: "pets/delete/{petId}",
+        path: "/pets/delete/{petId}",
       },
     },
   ],

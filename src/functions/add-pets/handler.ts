@@ -1,5 +1,5 @@
 import { DynamoDBService } from "dynamo-layer";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { httpResponse } from "common-layer";
 
 interface AddPetRequest {
@@ -42,8 +42,8 @@ const validateInput = (data: AddPetRequest): string | null => {
 };
 
 export const handler = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
+  event: APIGatewayProxyEventV2
+): Promise<APIGatewayProxyResultV2> => {
   try {
     const tableName = process.env.PETS_TABLE_NAME;
     if (!tableName) {

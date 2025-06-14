@@ -16,9 +16,10 @@ const serverlessConfiguration: AWS = {
     runtime: "nodejs18.x",
     stage: "${opt:stage, 'dev'}",
     region: "us-east-1",
-    apiGateway: {
-      minimumCompressionSize: 1024,
-      shouldStartNameWithService: true,
+    httpApi: {
+      id: {
+        "Fn::ImportValue": "api-pet-foundation-dev-api-id", 
+      },
     },
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",

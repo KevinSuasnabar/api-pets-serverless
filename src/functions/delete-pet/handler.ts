@@ -1,52 +1,35 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBService } from "dynamo-layer";
+import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { httpResponse } from "common-layer";
+
+const ERROR_MESSAGES = {
+  SERVER_ERROR: "Internal server error",
+} as const;
 
 export const handler = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
+  event: APIGatewayProxyEventV2
+): Promise<APIGatewayProxyResultV2> => {
   try {
-    const petId = event.pathParameters?.petId;
-    const body = event.body ? JSON.parse(event.body) : {};
-    const foundationId = body.foundationId;
-
-    if (!petId || !foundationId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          message: "Pet ID and foundationId are required",
-        }),
-      };
-    }
-
     const tableName = process.env.PETS_TABLE_NAME;
     if (!tableName) {
       throw new Error("PETS_TABLE_NAME environment variable is not defined");
     }
     const dynamoDBService = new DynamoDBService({ tableName });
 
-    const pet = await dynamoDBService.getPetById(foundationId, petId);
-    if (!pet) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: "Pet not found for this foundation" }),
-      };
+    const foundationId = event.pathParameters?.foundationId;
+    const petId = event.pathParameters?.petId;
+
+    if (!foundationId || !petId) {
+      return httpResponse.badRequest("Foundation ID and Pet ID are required");
     }
 
     await dynamoDBService.deletePet(foundationId, petId);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: "Pet disabled successfully",
-      }),
-    };
+    return httpResponse.ok({ message: "Pet deleted successfully" });
   } catch (error) {
     console.error("Error deleting pet:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: "Internal server error",
-      }),
-    };
+    return httpResponse.internalError(
+      ERROR_MESSAGES.SERVER_ERROR,
+      error instanceof Error ? error.message : "Unknown error"
+    );
   }
 };
